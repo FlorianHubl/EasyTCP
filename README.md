@@ -14,10 +14,10 @@ tcp.start()
 ### Send and Recieve
 
 ```swift
-let a = try await tcp.send("Hello")
+let result = try await tcp.send("Hello")
 // Convert to String
-let b = String(data: a, encoding: .utf8)!
-print(b)
+let resultString = String(data: result, encoding: .utf8)!
+print(resultString)
 ```
 
 ### Bugs and Limitations
