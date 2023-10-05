@@ -13,6 +13,14 @@ public class EasyTCP {
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
+    init(hostName: String, port: Int) {
+        let host = NWEndpoint.Host(hostName)
+        let port = NWEndpoint.Port("\(port)")!
+        self.lastKey = nil
+        self.waitTime = 0.17
+        self.connection = NWConnection(host: host, port: port, using: .tcp)
+    }
+    
     init(hostName: String, port: Int, using parameters: NWParameters? = nil, waitTime: Double? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
@@ -28,7 +36,6 @@ public class EasyTCP {
         self.waitTime = jsonRpc ?? false ? nil : 0.17
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
-    
     
     let connection: NWConnection
     
@@ -122,7 +129,7 @@ public class EasyTCP {
     var completion: Completion? = nil
     
     @available(iOS 13.0, *)
-    func send(_ line: String) async throws -> Data {
+    func send(line: String) async throws -> Data {
         guard self.completion == nil else {
             print("Completion schon belegt")
             return Data()
@@ -131,6 +138,30 @@ public class EasyTCP {
             send(line: line) { data in
                 print("continuation: \(data)")
                 continuation.resume(returning: data)
+            }
+        }
+    }
+    
+    enum TCPError: Error {
+        case jsonRpcIsNotActive
+        case error(String)
+    }
+    
+    @available(iOS 13.0, *)
+    func sendJsonRpc<T: Codable>(input: Codable, output: T.Type) async throws -> T {
+        guard lastKey != nil else {throw TCPError.jsonRpcIsNotActive}
+        let dataLine = try JSONEncoder().encode(input)
+        guard let line = String(data: dataLine, encoding: .utf8) else {
+            throw TCPError.error("Object cant be converted to String")
+        }
+        guard self.completion == nil else {
+            throw TCPError.error("Multiple TCP Calls")
+        }
+        return await withCheckedContinuation { continuation in
+            send(line: line) { data in
+                print("continuation: \(data)")
+                let a = try! JSONDecoder().decode(output, from: data)
+                continuation.resume(returning: a)
             }
         }
     }
