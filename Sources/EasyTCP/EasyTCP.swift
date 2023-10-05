@@ -10,6 +10,7 @@ public class EasyTCP {
         self.completion = result
         self.lastKey = nil
         self.waitTime = 0.17
+        self.debug = false
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
@@ -18,6 +19,7 @@ public class EasyTCP {
         let port = NWEndpoint.Port("\(port)")!
         self.lastKey = nil
         self.waitTime = 0.17
+        self.debug = false
         self.connection = NWConnection(host: host, port: port, using: .tcp)
     }
     
@@ -26,16 +28,20 @@ public class EasyTCP {
         let port = NWEndpoint.Port("\(port)")!
         self.lastKey = nil
         self.waitTime = waitTime ?? 0.17
+        self.debug = false
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
-    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, jsonRpc: Bool? = nil) {
+    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, jsonRpc: Bool? = nil, debug: Bool? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.lastKey = jsonRpc ?? false ? "}" : nil
         self.waitTime = jsonRpc ?? false ? nil : 0.17
+        self.debug = debug ?? false
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
+    
+    let debug: Bool
     
     let connection: NWConnection
     
@@ -44,7 +50,9 @@ public class EasyTCP {
     var resultData = Data()
     
     public func start() {
-        print("will start")
+        if debug {
+            print("EasyTCP started")
+        }
         self.connection.stateUpdateHandler = self.didChange(state:)
         self.startReceive()
         self.connection.start(queue: .main)
@@ -52,7 +60,9 @@ public class EasyTCP {
     
     public func stop() {
         self.connection.cancel()
-        print("did stop")
+        if debug {
+            print("EasyTCP stopped")
+        }
     }
     
     private func didChange(state: NWConnection.State) {
@@ -60,16 +70,22 @@ public class EasyTCP {
         case .setup:
             break
         case .waiting(let error):
-            print("is waiting: %@", "\(error)")
+            if debug {
+                print("EasyTCP is waiting: %@", "\(error)")
+            }
         case .preparing:
             break
         case .ready:
             break
         case .failed(let error):
-            print("did fail, error: %@", "\(error)")
+            if debug {
+                print("EasyTCP did fail, error: %@", "\(error)")
+            }
             self.stop()
         case .cancelled:
-            print("was cancelled")
+            if debug {
+                print("EasyTCP was cancelled")
+            }
             self.stop()
         @unknown default:
             break
@@ -131,12 +147,10 @@ public class EasyTCP {
     @available(iOS 13.0, *)
     public func send(line: String) async throws -> Data {
         guard self.completion == nil else {
-            print("Completion schon belegt")
             return Data()
         }
         return await withCheckedContinuation { continuation in
             send(line: line) { data in
-                print("continuation: \(data)")
                 continuation.resume(returning: data)
             }
         }
@@ -151,6 +165,10 @@ public class EasyTCP {
     public func sendJsonRpc<T: Codable>(input: Codable, output: T.Type) async throws -> T {
         guard lastKey != nil else {throw TCPError.jsonRpcIsNotActive}
         let dataLine = try JSONEncoder().encode(input)
+        if debug {
+            print("EasyTCP JSON Send:")
+            print(String(data: dataLine, encoding: .utf8)!)
+        }
         guard let line = String(data: dataLine, encoding: .utf8) else {
             throw TCPError.error("Object cant be converted to String")
         }
@@ -160,6 +178,10 @@ public class EasyTCP {
         return await withCheckedContinuation { continuation in
             send(line: line) { data in
                 print("continuation: \(data)")
+                if self.debug {
+                    print("EasyTCP JSON Recieve:")
+                    print(String(data: data, encoding: .utf8)!)
+                }
                 let a = try! JSONDecoder().decode(output, from: data)
                 continuation.resume(returning: a)
             }
