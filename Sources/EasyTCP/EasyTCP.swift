@@ -78,7 +78,7 @@ public class EasyTCP {
     
     private var waitTime: Double? = nil
     
-    func checkData(oldData: Data) {
+    private func checkData(oldData: Data) {
         self.resultData.append(oldData)
         Timer.scheduledTimer(withTimeInterval: waitTime!, repeats: false) { _ in
             if oldData == self.resultData {
@@ -91,7 +91,7 @@ public class EasyTCP {
         }
     }
     
-    func checkKeys(data: Data) {
+    private func checkKeys(data: Data) {
         let str = String(data: data, encoding: .utf8)!
         self.resultData.append(data)
         var suf = String(str.suffix(self.lastKeysCount))
@@ -129,7 +129,7 @@ public class EasyTCP {
     var completion: Completion? = nil
     
     @available(iOS 13.0, *)
-    func send(line: String) async throws -> Data {
+    public func send(line: String) async throws -> Data {
         guard self.completion == nil else {
             print("Completion schon belegt")
             return Data()
@@ -148,7 +148,7 @@ public class EasyTCP {
     }
     
     @available(iOS 13.0, *)
-    func sendJsonRpc<T: Codable>(input: Codable, output: T.Type) async throws -> T {
+    public func sendJsonRpc<T: Codable>(input: Codable, output: T.Type) async throws -> T {
         guard lastKey != nil else {throw TCPError.jsonRpcIsNotActive}
         let dataLine = try JSONEncoder().encode(input)
         guard let line = String(data: dataLine, encoding: .utf8) else {
@@ -166,7 +166,7 @@ public class EasyTCP {
         }
     }
     
-    func send(line: String, completion: @escaping Completion) {
+    public func send(line: String, completion: @escaping Completion) {
         let data = Data("\(line)\r\n".utf8)
         guard self.completion == nil else {
             print("completion ist nicht nil")
@@ -181,21 +181,21 @@ public class EasyTCP {
             }
         })
     }
-        
-        func send(line: String) {
-            let data = Data("\(line)\r\n".utf8)
-            guard self.completion == nil else {
-                print("completion ist nicht nil")
-                fatalError()
-            }
-            self.connection.send(content: data, completion: NWConnection.SendCompletion.contentProcessed { error in
-                if let error = error {
-                    print("did send, error: %@", "\(error)")
-                    self.stop()
-                } else {
-                    let str = String(data: data, encoding: .utf8)!
-                    print("did send: \(str)")
-                }
-            })
+    
+    public func send(line: String) {
+        let data = Data("\(line)\r\n".utf8)
+        guard self.completion == nil else {
+            print("completion ist nicht nil")
+            fatalError()
         }
+        self.connection.send(content: data, completion: NWConnection.SendCompletion.contentProcessed { error in
+            if let error = error {
+                print("did send, error: %@", "\(error)")
+                self.stop()
+            } else {
+                let str = String(data: data, encoding: .utf8)!
+                print("did send: \(str)")
+            }
+        })
     }
+}
