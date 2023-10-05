@@ -20,6 +20,22 @@ let resultString = String(data: result, encoding: .utf8)!
 print(resultString)
 ```
 
-### Bugs and Limitations
+### TLS
 
-Currently you are not able to recieve more than 65536 bytes. Also when you convert to a String there is always a line break at the end.
+```swift
+let tcp = EasyTCP(hostName: "tcpbin.com", port: 4243, using: .tls)
+```
+
+### Warning
+
+If you recieve huge data packages the client will wait until all data packages arrive. If you have a slow connection please set the waitTime higher:
+
+```swift
+let tcp = EasyTCP(hostName: "tcpbin.com", port: 4242, waitTime: 0.7)
+```
+
+If you're using a JSON RPC, you can specify this to make it easier for the client to process your queries.
+
+```swift
+let tcp = EasyTCP(hostName: "tcpbin.com", port: 4242, jsonRPS: true)
+```

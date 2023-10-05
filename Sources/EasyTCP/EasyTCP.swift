@@ -8,21 +8,33 @@ public class EasyTCP {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.completion = result
+        self.lastKey = nil
+        self.waitTime = 0.17
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
-    init(hostName: String, port: Int, using parameters: NWParameters? = nil) {
+    init(hostName: String, port: Int, using parameters: NWParameters? = nil, waitTime: Double? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
+        self.lastKey = nil
+        self.waitTime = waitTime ?? 0.17
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
+    
+    init(hostName: String, port: Int, using parameters: NWParameters? = nil, jsonRpc: Bool? = nil) {
+        let host = NWEndpoint.Host(hostName)
+        let port = NWEndpoint.Port("\(port)")!
+        self.lastKey = jsonRpc ?? false ? "}" : nil
+        self.waitTime = jsonRpc ?? false ? nil : 0.17
+        self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
+    }
+    
     
     let connection: NWConnection
     
-    //    let lastKeys = "}"
-    //    let lastKeysCount = 2
-    //
-    //    var resultData = Data()
+    let lastKey: String?
+    let lastKeysCount = 2
+    var resultData = Data()
     
     func start() {
         print("will start")
@@ -57,11 +69,43 @@ public class EasyTCP {
         }
     }
     
+    private var waitTime: Double? = nil
+    
+    func checkData(oldData: Data) {
+        self.resultData.append(oldData)
+        Timer.scheduledTimer(withTimeInterval: waitTime!, repeats: false) { _ in
+            if oldData == self.resultData {
+                if let completion = self.completion {
+                    self.resultData.removeLast()
+                    completion(self.resultData)
+                    self.resultData.removeAll()
+                }
+            }
+        }
+    }
+    
+    func checkKeys(data: Data) {
+        let str = String(data: data, encoding: .utf8)!
+        self.resultData.append(data)
+        var suf = String(str.suffix(self.lastKeysCount))
+        suf.removeLast()
+        if suf == self.lastKey {
+            if let completion = self.completion {
+                self.resultData.removeLast()
+                completion(self.resultData)
+                self.completion = nil
+                self.resultData.removeAll()
+            }
+        }
+    }
+    
     private func startReceive() {
         self.connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { data, _, isDone, error in
             if let data = data, !data.isEmpty {
-                if let completion = self.completion {
-                    completion(data)
+                if self.lastKey == nil {
+                    self.checkData(oldData: self.resultData)
+                }else {
+                    self .checkKeys(data: data)
                 }
             }
             if let error = error {
