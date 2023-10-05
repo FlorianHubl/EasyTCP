@@ -4,7 +4,7 @@ import Network
 @available(iOS 12.0, *)
 public class EasyTCP {
     
-    init(hostName: String, port: Int, using parameters: NWParameters? = nil, result: @escaping Completion) {
+    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, result: @escaping Completion) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.completion = result
@@ -13,7 +13,7 @@ public class EasyTCP {
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
-    init(hostName: String, port: Int) {
+    public init(hostName: String, port: Int) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.lastKey = nil
@@ -21,7 +21,7 @@ public class EasyTCP {
         self.connection = NWConnection(host: host, port: port, using: .tcp)
     }
     
-    init(hostName: String, port: Int, using parameters: NWParameters? = nil, waitTime: Double? = nil) {
+    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, waitTime: Double? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.lastKey = nil
@@ -29,7 +29,7 @@ public class EasyTCP {
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
-    init(hostName: String, port: Int, using parameters: NWParameters? = nil, jsonRpc: Bool? = nil) {
+    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, jsonRpc: Bool? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.lastKey = jsonRpc ?? false ? "}" : nil
@@ -124,7 +124,7 @@ public class EasyTCP {
         }
     }
     
-    typealias Completion = (Data) -> ()
+    public typealias Completion = (Data) -> ()
     
     var completion: Completion? = nil
     
