@@ -43,14 +43,14 @@ public class EasyTCP {
     let lastKeysCount = 2
     var resultData = Data()
     
-    func start() {
+    public func start() {
         print("will start")
         self.connection.stateUpdateHandler = self.didChange(state:)
         self.startReceive()
         self.connection.start(queue: .main)
     }
     
-    func stop() {
+    public func stop() {
         self.connection.cancel()
         print("did stop")
     }
