@@ -23,4 +23,3 @@ print(resultString)
 ### Bugs and Limitations
 
 Currently you are not able to recieve more than 65536 bytes. Also when you convert to a String there is always a line break at the end.
-Also there is no support for TLS.

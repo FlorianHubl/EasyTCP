@@ -4,17 +4,17 @@ import Network
 @available(iOS 12.0, *)
 public class EasyTCP {
     
-    init(hostName: String, port: Int, result: @escaping Completion) {
+    init(hostName: String, port: Int, using parameters: NWParameters? = nil, result: @escaping Completion) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
         self.completion = result
-        self.connection = NWConnection(host: host, port: port, using: .tcp)
+        self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
-    init(hostName: String, port: Int) {
+    init(hostName: String, port: Int, using parameters: NWParameters? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
-        self.connection = NWConnection(host: host, port: port, using: .tcp)
+        self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
     let connection: NWConnection
