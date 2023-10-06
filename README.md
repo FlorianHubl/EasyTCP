@@ -28,10 +28,10 @@ let tcp = EasyTCP(hostName: "tcpbin.com", port: 4243, using: .tls)
 
 ### JSON-RPC
 
-If you're using a JSON RPC, you can specify this to make it easier for the client to process your queries.
+If you're using a JSON RPC, you can specify the last letter which will be send from the Server.
 
 ```swift
-let tcp = EasyTCP(hostName: "tcpbin.com", port: 4242, jsonRPS: true)
+let tcp = EasyTCP(hostName: "tcpbin.com", port: 4242, lastLetters: "}", debug: true)
 ```
 
 When you are using the JSON RCP, you can send and recieve objects. You have to specify the type that confirms to codable.

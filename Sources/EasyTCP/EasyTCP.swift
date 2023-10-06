@@ -32,11 +32,11 @@ public class EasyTCP {
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
     
-    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, jsonRpc: Bool? = nil, debug: Bool? = nil) {
+    public init(hostName: String, port: Int, using parameters: NWParameters? = nil, lastLetters: String? = nil, debug: Bool? = nil) {
         let host = NWEndpoint.Host(hostName)
         let port = NWEndpoint.Port("\(port)")!
-        self.lastKey = jsonRpc ?? false ? "}" : nil
-        self.waitTime = jsonRpc ?? false ? nil : 0.17
+        self.lastKey = lastLetters
+        self.waitTime = lastLetters == nil ? 0.17 : nil
         self.debug = debug ?? false
         self.connection = NWConnection(host: host, port: port, using: parameters ?? .tcp)
     }
@@ -46,7 +46,6 @@ public class EasyTCP {
     let connection: NWConnection
     
     let lastKey: String?
-    let lastKeysCount = 2
     var resultData = Data()
     
     public func start() {
@@ -108,11 +107,11 @@ public class EasyTCP {
     }
     
     private func checkKeys(data: Data) {
-        let str = String(data: data, encoding: .utf8)!
+        var str = String(data: data, encoding: .utf8)!
         self.resultData.append(data)
-        var suf = String(str.suffix(self.lastKeysCount))
-        suf.removeLast()
-        if suf == self.lastKey {
+        str.removeLast()
+        let suf = String(str.suffix(lastKey!.count))
+        if suf == self.lastKey! {
             if let completion = self.completion {
                 self.resultData.removeLast()
                 completion(self.resultData)
@@ -128,7 +127,7 @@ public class EasyTCP {
                 if self.lastKey == nil {
                     self.checkData(oldData: self.resultData)
                 }else {
-                    self .checkKeys(data: data)
+                    self.checkKeys(data: data)
                 }
             }
             if let error = error {
