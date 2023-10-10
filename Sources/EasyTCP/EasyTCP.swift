@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-@available(iOS 12.0, *)
+@available(iOS 13.0, *)
 public class EasyTCP: ObservableObject {
     
     public init(hostName: String, port: Int, using parameters: NWParameters? = nil, result: @escaping Completion) {
