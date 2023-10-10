@@ -2,7 +2,7 @@ import Foundation
 import Network
 
 @available(iOS 12.0, *)
-public class EasyTCP {
+public class EasyTCP: ObservableObject {
     
     public init(hostName: String, port: Int, using parameters: NWParameters? = nil, result: @escaping Completion) {
         let host = NWEndpoint.Host(hostName)
@@ -43,7 +43,7 @@ public class EasyTCP {
     
     let debug: Bool
     
-    let connection: NWConnection
+    public let connection: NWConnection
     
     let lastKey: String?
     var resultData = Data()
